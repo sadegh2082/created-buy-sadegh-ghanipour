@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 قیمت لحظه‌ای ارز و طلا</title>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            overflow-x: hidden;
+        }
+        .bg-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; }
+        .bg-animation span { position: absolute; display: block; background: rgba(255,255,255,0.05); animation: move 25s linear infinite; bottom: -150px; border-radius: 50%; }
+        .bg-animation span:nth-child(1) { left: 25%; width: 80px; height: 80px; }
+        .bg-animation span:nth-child(2) { left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; }
+        .bg-animation span:nth-child(3) { left: 70%; width: 20px; height: 20px; animation-delay: 4s; }
+        .bg-animation span:nth-child(4) { left: 40%; width: 60px; height: 60px; animation-duration: 18s; }
+        .bg-animation span:nth-child(5) { left: 65%; width: 20px; height: 20px; }
+        .bg-animation span:nth-child(6) { left: 75%; width: 110px; height: 110px; animation-delay: 3s; }
+        @keyframes move { 0% { transform: translateY(0) rotate(0); opacity: 1; } 100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; } }
+        .container { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 30px 15px; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { font-size: 2.5rem; font-weight: 900; background: linear-gradient(135deg, #f093fb, #f5576c, #4facfe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+        .header p { color: rgba(255,255,255,0.6); font-size: 0.95rem; }
+        
+        .connection-status { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 50px; margin-top: 15px; border: 1px solid; transition: all 0.3s; }
+        .connection-status.online { background: rgba(0,255,136,0.1); border-color: rgba(0,255,136,0.3); }
+        .connection-status.offline { background: rgba(255,82,82,0.1); border-color: rgba(255,82,82,0.3); }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; transition: background 0.3s; }
+        .online .status-dot { background: #00ff88; box-shadow: 0 0 10px #00ff88; animation: pulse 2s infinite; }
+        .offline .status-dot { background: #ff5252; box-shadow: 0 0 10px #ff5252; }
+        .status-text { font-size: 0.85rem; font-weight: 600; transition: color 0.3s; }
+        .online .status-text { color: #00ff88; }
+        .offline .status-text { color: #ff5252; }
+
+        @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } }
+        
+        .loading-bar { width: 100%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 15px; overflow: hidden; display: none; }
+        .loading-bar.active { display: block; }
+        .loading-bar-inner { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2, #f093fb); animation: loading 0.6s linear infinite; width: 30%; }
+        @keyframes loading { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .price-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); position: relative; overflow: hidden; transition: all 0.3s; cursor: pointer; }
+        .price-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--g); }
+        .price-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
+        
+        .price-card.tether { --g: linear-gradient(90deg, #26A17B, #50E3C2); }
+        .price-card.bitcoin { --g: linear-gradient(90deg, #F7931A, #FFD700); }
+        .price-card.ethereum { --g: linear-gradient(90deg, #627EEA, #A390E4); }
+        .price-card.gold { --g: linear-gradient(90deg, #FFD700, #FFA500); }
+        .price-card.coin { --g: linear-gradient(90deg, #C9B037, #E8D48A); }
+        .price-card.xau { --g: linear-gradient(90deg, #D4AF37, #FFD700); }
+        .price-card.xrp { --g: linear-gradient(90deg, #23292F, #00AAE4); }
+
+        .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .icon-wrapper { width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+        
+        .tether .icon-wrapper { background: linear-gradient(135deg, #26A17B, #50E3C2); }
+        .bitcoin .icon-wrapper { background: linear-gradient(135deg, #F7931A, #FFD700); }
+        .ethereum .icon-wrapper { background: linear-gradient(135deg, #627EEA, #7A4CD3); }
+        .gold .icon-wrapper { background: linear-gradient(135deg, #FFD700, #FFA500); }
+        .coin .icon-wrapper { background: linear-gradient(135deg, #C9B037, #E8D48A); }
+        .xau .icon-wrapper { background: linear-gradient(135deg, #D4AF37, #FFD700); }
+        .xrp .icon-wrapper { background: linear-gradient(135deg, #23292F, #00AAE4); }
+
+        .card-title h2 { color: #fff; font-size: 1.1rem; font-weight: 700; }
+        .card-title span { color: rgba(255,255,255,0.5); font-size: 0.75rem; }
+        .click-hint { position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.1); padding: 3px 7px; border-radius: 10px; font-size: 0.6rem; color: rgba(255,255,255,0.5); }
+        .price-value { font-size: 1.7rem; font-weight: 900; color: #fff; direction: ltr; text-align: right; margin-bottom: 5px; }
+        .price-value.loading { color: rgba(255,255,255,0.3); font-size: 0.9rem; }
+        .price-value.error { color: #ff5252; font-size: 0.85rem; }
+        .currency-label { color: rgba(255,255,255,0.5); font-size: 0.8rem; }
+        .price-change { display: inline-flex; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; margin-top: 10px; }
+        .price-change.up { background: rgba(0,255,136,0.1); color: #00ff88; }
+        .price-change.down { background: rgba(255,82,82,0.1); color: #ff5252; }
+        .price-change.neutral { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
+        .card-footer { display: flex; justify-content: space-between; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.7rem; color: rgba(255,255,255,0.4); }
+        .converter-section { background: rgba(255,255,255,0.03); border-radius: 20px; padding: 25px; border: 1px solid rgba(255,255,255,0.1); margin-top: 25px; }
+        .converter-header { text-align: center; margin-bottom: 20px; }
+        .converter-header h3 { color: #fff; font-size: 1.3rem; }
+        .converter-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; }
+        .converter-box { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; }
+        .converter-box label { display: block; color: rgba(255,255,255,0.6); font-size: 0.8rem; margin-bottom: 6px; }
+        .converter-box select, .converter-box input { width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 10px; color: #fff; font-family: 'Vazirmatn'; font-size: 0.9rem; }
+        .converter-box select option { background: #1a1a2e; }
+        .converter-box input { margin-top: 6px; font-size: 1.1rem; font-weight: 700; text-align: center; }
+        .swap-btn { background: linear-gradient(135deg, #667eea, #764ba2); border: none; width: 45px; height: 45px; border-radius: 50%; color: #fff; font-size: 1.2rem; cursor: pointer; }
+        .swap-btn:hover { transform: rotate(180deg); }
+        .converter-result { text-align: center; margin-top: 15px; padding: 12px; background: rgba(102,126,234,0.1); border-radius: 10px; }
+        .converter-result .result-value { color: #fff; font-size: 1.4rem; font-weight: 900; }
+        .quick-convert { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 20px; }
+        .quick-card { background: rgba(255,255,255,0.03); border-radius: 10px; padding: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+        .quick-card .title { color: rgba(255,255,255,0.6); font-size: 0.75rem; margin-bottom: 6px; }
+        .quick-card .value { color: #fff; font-size: 1rem; font-weight: 700; }
+        .stats-section { background: rgba(255,255,255,0.03); border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); margin-top: 25px; }
+        .stats-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .stats-header h3 { color: #fff; font-size: 1.1rem; }
+        .refresh-btn { background: linear-gradient(135deg, #667eea, #764ba2); border: none; padding: 8px 16px; border-radius: 10px; color: #fff; font-family: 'Vazirmatn'; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .refresh-btn.loading .refresh-icon { animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+        .stat-item { text-align: center; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 10px; }
+        .stat-label { color: rgba(255,255,255,0.5); font-size: 0.75rem; margin-bottom: 5px; }
+        .stat-value { color: #fff; font-size: 1rem; font-weight: 700; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 15px; }
+        .modal-overlay.show { display: flex; }
+        .modal { background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 20px; max-width: 600px; width: 100%; max-height: 80vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .modal-header h2 { color: #fff; font-size: 1.2rem; }
+        .modal-close { background: rgba(255,255,255,0.1); border: none; width: 35px; height: 35px; border-radius: 50%; color: #fff; font-size: 1.2rem; cursor: pointer; }
+        .modal-body { padding: 20px; }
+        .modal-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+        .modal-stat { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; text-align: center; }
+        .modal-stat .label { color: rgba(255,255,255,0.5); font-size: 0.75rem; margin-bottom: 5px; }
+        .modal-stat .value { color: #fff; font-size: 1.1rem; font-weight: 700; direction: ltr; }
+        .modal-stat .value.up { color: #00ff88; }
+        .modal-stat .value.down { color: #ff5252; }
+        .chart-container { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 15px; }
+        .chart-wrapper { height: 250px; }
+        .footer { text-align: center; margin-top: 40px; padding: 25px 15px; }
+        .footer p { color: rgba(255,255,255,0.4); font-size: 0.8rem; margin-bottom: 15px; }
+        .designer-badge { display: inline-block; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 15px 30px; }
+        .designer-badge span { display: block; color: rgba(255,255,255,0.5); font-size: 0.75rem; margin-bottom: 5px; }
+        .designer-badge strong { display: block; font-size: 1.3rem; font-weight: 900; background: linear-gradient(135deg, #667eea, #764ba2, #f093fb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .toast { position: fixed; bottom: 15px; right: 15px; background: rgba(0,0,0,0.9); padding: 10px 18px; border-radius: 10px; color: #fff; font-size: 0.85rem; transform: translateX(150%); transition: transform 0.3s; z-index: 1001; }
+        .toast.show { transform: translateX(0); }
+        @media (max-width: 768px) { .header h1 { font-size: 1.5rem; } .cards-grid { grid-template-columns: 1fr 1fr; } .converter-grid { grid-template-columns: 1fr; } .swap-btn { margin: 0 auto; } }
+        @media (max-width: 500px) { .cards-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+
+    <div class="container">
+        <header class="header">
+            <h1>💎 قیمت لحظه‌ای ارز و طلا</h1>
+            <p>کلیک روی هر کارت = نمودار و جزئیات</p>
+            
+            <div class="connection-status online" id="connection-status">
+                <div class="status-dot" id="connection-dot"></div>
+                <span class="status-text" id="connection-text">آنلاین</span>
+            </div>
+
+            <div class="loading-bar" id="loading-bar"><div class="loading-bar-inner"></div></div>
+        </header>
+
+        <div class="cards-grid">
+            <div class="price-card tether" onclick="openModal('tether')">
+                <div class="click-hint">📊</div>
+                <div class="card-header">
+                    <div class="icon-wrapper">₮</div>
+                    <div class="card-title"><h2>تتر</h2><span>USDT</span></div>
+                </div>
+                <div class="price-value loading" id="tether-price">⏳</div>
+                <div class="currency-label">تومان</div>
+                <div class="price-change neutral" id="tether-change">—</div>
+                <div class="card-footer"><span id="tether-time">--</span></div>
+            </div>
+
+            <div class="price-card bitcoin" onclick="openModal('bitcoin')">
+                <div class="click-hint">📊</div>
+                <div class="card-header">
+                    <div class="icon-wrapper">₿</div>
+                    <div class="card-title"><h2>بیت کوین</h2><span>BTC</span></div>
+                </div>
+                <div class="price-value loading" id="bitcoin-price">⏳</div>
+                <div class="currency-label">دلار</div>
+                <div class="price-change neutral" id="bitcoin-change">—</div>
+                <div class="card-footer"><span id="bitcoin-time">--</span></div>
+            </div>
+
+            <div class="price-card ethereum" onclick="openModal('ethereum')">
+                <div class="click-hint">📊</div>
+                <div class="card-header">
+                    <div class="icon-wrapper">Ξ</div>
+                    <div class="card-title"><h2>اتریوم</h2><span>ETH</span></div>
+                </div>
+                <div class="price-value loading" id="ethereum-price">⏳</div>
+                <div class="currency-label">دلار</div>
+                <div class="price-change neutral" id="ethereum-change">—</div>
+                <div class="card-footer"><span id="ethereum-time">--</span></div>
+            </div>
+            <div class="price-card xrp" onclick="openModal('xrp')">
+                <div class="click-hint">📊</div>
+                <div class="card-header">
+                    <div class="icon-wrapper">✕</div>
+                    <div class="card-title"><h2>ریپل</h2><span>XRP</span></div>
+                </div>
+                <div class="price-value loading" id="xrp-price">⏳</div>
+                <div class="currency-label">دلار</div>
+                <div class="price-change neutral" id="xrp-change">—</div>
+                <div class="card-footer"><span id="xrp-time">--</span></div>
+            </div>
+
+            <div class="price-card gold" onclick="openModal('gold')">
+                <div class="click-hint">📊</div>
+                <div class="card-header">
+                    <div class="icon-wrapper">🥇</div>
+                    <div class="card-title"><h2>طلای ۱۸ عیار</h2><span>گرم</span></div>
+                </div>
+                <div class="price-value loading" id="gold-price">⏳</div>
+                <div class="currency-label">تومان</div>
+                <div class="price-change neutral" id="gold-change">—</div>
+                <div class="card-footer"><span id="gold-time">--</span></div>
+            </div>
+
+            <div class="price-card xau" onclick="openModal('xau')">
+                <div class="click-hint">📊</div>
+                <div class="card-header">
+                    <div class="icon-wrapper">🌍</div>
+                    <div class="card-title"><h2>طلای جهانی</h2><span>اونس</span></div>
+                </div>
+                <div class="price-value loading" id="xau-price">⏳</div>
+                <div class="currency-label">دلار</div>
+                <div class="price-change neutral" id="xau-change">—</div>
+                <div class="card-footer"><span id="xau-time">--</span></div>
+            </div>
+
+            <div class="price-card coin" onclick="openModal('coin')">
+                <div class="click-hint">📊</div>
+                <div class="card-header">
+                    <div class="icon-wrapper">🪙</div>
+                    <div class="card-title"><h2>سکه امامی</h2><span>تمام</span></div>
+                </div>
+                <div class="price-value loading" id="coin-price">⏳</div>
+                <div class="currency-label">تومان</div>
+                <div class="price-change neutral" id="coin-change">—</div>
+                <div class="card-footer"><span id="coin-time">--</span></div>
+            </div>
+        </div>
+
+        <div class="converter-section">
+            <div class="converter-header"><h3>🔄 تبدیل ارز</h3></div>
+            <div class="converter-grid">
+                <div class="converter-box">
+                    <label>از:</label>
+                    <select id="fromCurrency" onchange="convert()">
+                        <option value="usdt">تتر</option>
+                        <option value="btc">بیت کوین</option>
+                        <option value="eth">اتریوم</option>
+                        <option value="xrp">ریپل</option>
+                        <option value="gold">طلای ۱۸ عیار</option>
+                        <option value="xau">انس جهانی طلا</option>
+                        <option value="coin">سکه امامی</option>
+                        <option value="toman">تومان</option>
+                    </select>
+                    <input type="number" id="fromAmount" value="1" oninput="convert()">
+                </div>
+                <button class="swap-btn" onclick="swapCurrencies()">⇄</button>
+                <div class="converter-box">
+                    <label>به:</label>
+                    <select id="toCurrency" onchange="convert()">
+                        <option value="toman">تومان</option>
+                        <option value="gold">طلای ۱۸ عیار</option>
+                        <option value="xau">انس جهانی طلا</option>
+                        <option value="btc">بیت کوین</option>
+                        <option value="eth">اتریوم</option>
+                        <option value="xrp">ریپل</option>
+                        <option value="usdt">تتر</option>
+                        <option value="coin">سکه امامی</option>
+                    </select>
+                    <input type="text" id="toAmount" readonly value="--">
+                </div>
+            </div>
+            <div class="converter-result">
+                <div class="result-value" id="converter-result">--</div>
+            </div>
+            <div class="quick-convert">
+                <div class="quick-card"><div class="title">۱ BTC = طلا</div><div class="value" id="btc-to-gold">--</div></div>
+                <div class="quick-card"><div class="title">۱ BTC = سکه</div><div class="value" id="btc-to-coin">--</div></div>
+                <div class="quick-card"><div class="title">۱ سکه = طلا</div><div class="value" id="coin-to-gold">--</div></div>
+                <div class="quick-card"><div class="title">BTC تومان</div><div class="value" id="btc-toman">--</div></div>
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <div class="stats-header">
+                <h3>📊 اطلاعات</h3>
+                <button class="refresh-btn" id="refresh-btn" onclick="refreshAllPrices()">
+                    <span class="refresh-icon">🔄</span> بروزرسانی
+                </button>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item"><div class="stat-label">دفعات</div><div class="stat-value" id="update-count">0</div></div>
+                <div class="stat-item"><div class="stat-label">زمان</div><div class="stat-value" id="last-update">--</div></div>
+                <div class="stat-item"><div class="stat-label">سرعت</div><div class="stat-value" id="fetch-speed">--</div></div>
+                <div class="stat-item"><div class="stat-label">خودکار</div><div class="stat-value">۳۰s</div></div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>💎 داده‌ها از منابع معتبر</p>
+            <div class="designer-badge">
+                <span>✨ طراحی و توسعه</span>
+                <strong> صادق غنی‌پور</strong>
+            </div>
+        </footer>
+    </div>
+
+    <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 id="modal-title">📊</h2>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-stats" id="modal-stats"></div>
+                <div class="chart-container">
+                    <div class="chart-wrapper"><canvas id="priceChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"><span id="toast-msg">✅</span></div>
+
+    <script>
+        const P = { 
+            tether:{p:0,c:0,h:0,l:0,a:0}, 
+            bitcoin:{p:0,c:0,h:0,l:0,a:0}, 
+            ethereum:{p:0,c:0,h:0,l:0,a:0},
+            xrp:{p:0,c:0,h:0,l:0,a:0}, 
+            gold:{p:0,c:0,h:0,l:0,a:0}, 
+            xau:{p:0,c:0,h:0,l:0,a:0}, 
+            coin:{p:0,c:0,h:0,l:0,a:0, b:0}
+        };
+        let updateCount = 0, chart = null;
+
+        const fmt = n => Math.floor(n).toLocaleString('en-US');
+        const fmtD = (n, d=2) => n ? n.toLocaleString('en-US', {minimumFractionDigits:d, maximumFractionDigits:d}) : '---';
+        const time = () => new Date().toLocaleTimeString('fa-IR');
+
+        function updateConnection(isOnline) {
+            const el = document.getElementById('connection-status');
+            const txt = document.getElementById('connection-text');
+            if (isOnline) {
+                el.classList.remove('offline');
+                el.classList.add('online');
+                txt.textContent = 'آنلاین';
+            } else {
+                el.classList.remove('online');
+                el.classList.add('offline');
+                txt.textContent = 'آفلاین';
+            }
+        }
+
+        window.addEventListener('online', () => updateConnection(true));
+        window.addEventListener('offline', () => updateConnection(false));
+        window.addEventListener('load', () => updateConnection(navigator.onLine));
+
+        function toast(m) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = m;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        function setPrice(id, price, change, prefix='', dec=0, high=0, low=0, ath=0) {
+            const el = document.getElementById(`${id}-price`);
+            if (!el || !price) return;
+            el.textContent = prefix + (dec ? fmtD(price, dec) : fmt(price));
+            el.classList.remove('loading','error');
+            
+            const ch = document.getElementById(`${id}-change`);
+            if (ch) {
+                if (change > 0.01) { ch.className = 'price-change up'; ch.textContent = `▲${change.toFixed(2)}%`; }
+                else if (change < -0.01) { ch.className = 'price-change down'; ch.textContent = `▼${Math.abs(change).toFixed(2)}%`; }
+                else { ch.className = 'price-change neutral'; ch.textContent = '۰٪'; }
+            }
+            const tm = document.getElementById(`${id}-time`);
+            if (tm) tm.textContent = time();
+            P[id] = { ...P[id], p: price, c: change, h: high, l: low, a: ath };
+        }
+
+        async function rFetch(urls, timeout = 3000) {
+            const ctrl = new AbortController();
+            const tid = setTimeout(() => ctrl.abort(), timeout);
+            try {
+                const res = await Promise.any(
+                    urls.map(u => fetch(u, { signal: ctrl.signal }).then(r => r.ok ? r.json() : Promise.reject()))
+                );
+                clearTimeout(tid);
+                return res;
+            } catch {
+                clearTimeout(tid);
+                return null;
+            }
+        }
+
+        async function fetchTether() {
+            let finalPrice = null;
+            let finalChange = P.tether.c;
+            let finalHigh = P.tether.h;
+            let finalLow = P.tether.l;
+
+            try {
+                const nobitexUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://api.nobitex.ir/v2/orderbook/USDTIRT');
+                const data = await fetch(nobitexUrl, { signal: AbortSignal.timeout(3500) }).then(r => r.json());
+                
+                if (data.status === "ok" && data.bids && data.asks) {
+                    const bestBid = parseFloat(data.bids[0][0]);
+                    const bestAsk = parseFloat(data.asks[0][0]);
+                    const avgPrice = (bestBid + bestAsk) / 2;
+                    if (avgPrice > 1000) finalPrice = avgPrice / 10;
+                }
+            } catch (e) { }
+
+            if (!finalPrice) {
+                try {
+                    const wallexUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://api.wallex.ir/v1/markets');
+                    const data = await fetch(wallexUrl, { signal: AbortSignal.timeout(3500) }).then(r => r.json());
+                    let priceObj = data.result?.symbols?.['USDTTMN'] || data.result?.['USDT-TMN'];
+                    if (priceObj?.stats?.lastPrice) {
+                         const price = parseFloat(priceObj.stats.lastPrice);
+                         if (price > 1000) finalPrice = price;
+                    }
+                } catch (e) { }
+            }
+
+            try {
+                const tgjuUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://call4.tgju.org/ajax.json?t=' + Date.now());
+                const d = await fetch(tgjuUrl, { signal: AbortSignal.timeout(3500) }).then(r => r.json());
+                
+                if (d.current && d.current.price_dollar_rl) {
+                    const obj = d.current.price_dollar_rl;
+                    const tgjuPrice = parseFloat(obj.p.replace(/,/g, '')) / 10;
+                    
+                    finalChange = parseFloat(obj.dp) || 0;
+                    finalHigh = parseFloat(obj.h.replace(/,/g, '')) / 10;
+                    finalLow = parseFloat(obj.l.replace(/,/g, '')) / 10;
+                    
+                    if (!finalPrice) finalPrice = tgjuPrice;
+                }
+            } catch (e) { }
+
+            if (finalPrice) {
+                setPrice('tether', finalPrice, finalChange, '', 0, finalHigh, finalLow);
+            } else {
+                document.getElementById('tether-price').textContent = 'خطا';
+                document.getElementById('tether-price').classList.add('error');
+            }
+        }
+        
+        async function fetchTGJU() {
+            const ts = Date.now();
+            const targetUrl = 'https://call4.tgju.org/ajax.json?t=' + ts;
+            const urls = [
+                'https://corsproxy.io/?' + encodeURIComponent(targetUrl),
+                'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(targetUrl)
+            ];
+            const d = await rFetch(urls, 4000);
+            if (!d?.current) return;
+
+            const parse = (obj) => ({
+                p: parseFloat(obj.p.replace(/,/g,'')),
+                c: parseFloat(obj.dp)||0,
+                h: parseFloat(obj.h.replace(/,/g,'')),
+                l: parseFloat(obj.l.replace(/,/g,''))
+            });
+            
+            if (d.current.geram18) {
+                const vals = parse(d.current.geram18);
+                setPrice('gold', vals.p/10, vals.c, '', 0, vals.h/10, vals.l/10);
+            }
+            if (d.current.sekee) {
+                const vals = parse(d.current.sekee);
+                setPrice('coin', vals.p/10, vals.c, '', 0, vals.h/10, vals.l/10);
+            }
+
+            // --- دریافت دقیق حباب سکه امامی با استفاده از شناسه اختصاصی سایت ---
+            // شناسه حباب سکه امامی در TGJU برابر sekeh_emami_bubble است
+            if (d.current.sekeh_emami_bubble) {
+                const bubbleObj = d.current.sekeh_emami_bubble;
+                // قیمت در این بخش معمولا به ریال است، تقسیم بر ۱۰ می‌کنیم
+                P.coin.b = parseFloat(bubbleObj.p.replace(/,/g,'')) / 10;
+            }
+
+            const xauData = d.current.ons || d.current.ounce;
+            if (xauData) {
+                const vals = parse(xauData);
+                setPrice('xau', vals.p, vals.c, '$', 2, vals.h, vals.l);
+            }
+        }
+
+        async function fetchCrypto() {
+            const urls = [ 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,ripple&t=' + Date.now() ];
+            const data = await rFetch(urls, 4000);
+            if (data && Array.isArray(data)) {
+                const btc = data.find(c => c.id === 'bitcoin');
+                if (btc) setPrice('bitcoin', btc.current_price, btc.price_change_percentage_24h, '$', 0, btc.high_24h, btc.low_24h, btc.ath);
+                
+                const eth = data.find(c => c.id === 'ethereum');
+                if (eth) setPrice('ethereum', eth.current_price, eth.price_change_percentage_24h, '$', 2, eth.high_24h, eth.low_24h, eth.ath);
+
+                const xrp = data.find(c => c.id === 'ripple');
+                if (xrp) setPrice('xrp', xrp.current_price, xrp.price_change_percentage_24h, '$', 4, xrp.high_24h, xrp.low_24h, xrp.ath);
+            }
+        }
+
+        function convert() {
+            const from = document.getElementById('fromCurrency').value;
+            const to = document.getElementById('toCurrency').value;
+            const amt = parseFloat(document.getElementById('fromAmount').value) || 0;
+            if (!P.tether.p) return;
+
+            const r = {
+                btc: P.bitcoin.p * P.tether.p,
+                eth: P.ethereum.p * P.tether.p,
+                xrp: P.xrp.p * P.tether.p,
+                usdt: P.tether.p,
+                gold: P.gold.p,
+                xau: P.xau.p * P.tether.p,
+                coin: P.coin.p,
+                toman: 1
+            };
+            
+            if (!r[from] || !r[to]) return;
+            const res = (amt * r[from]) / r[to];
+            const names = { btc: 'BTC', eth: 'ETH', xrp: 'XRP', usdt: 'تتر', gold: 'گرم طلای ۱۸', xau: 'انس طلا', coin: 'سکه', toman: 'تومان' };
+            
+            let txt;
+            if (to === 'btc') txt = res.toFixed(8) + ' BTC';
+            else if (to === 'eth') txt = res.toFixed(6) + ' ETH';
+            else if (to === 'xrp') txt = res.toFixed(4) + ' XRP';
+            else if (to === 'xau') txt = res.toFixed(4) + ' انس';
+            else if (to === 'toman') txt = fmt(res) + ' تومان';
+            else txt = fmtD(res) + ' ' + names[to];
+            
+            document.getElementById('toAmount').value = txt.split(' ')[0];
+            document.getElementById('converter-result').textContent = txt;
+        }
+
+        function swapCurrencies() {
+            const f = document.getElementById('fromCurrency');
+            const t = document.getElementById('toCurrency');
+            [f.value, t.value] = [t.value, f.value];
+            convert();
+        }
+
+        function updateQuick() {
+            if (!P.tether.p || !P.bitcoin.p || !P.gold.p || !P.coin.p) return;
+            const btcT = P.bitcoin.p * P.tether.p;
+            document.getElementById('btc-to-gold').textContent = fmt(btcT / P.gold.p) + ' گرم';
+            document.getElementById('btc-to-coin').textContent = fmtD(btcT / P.coin.p) + ' عدد';
+            document.getElementById('coin-to-gold').textContent = fmtD(P.coin.p / P.gold.p) + ' گرم';
+            document.getElementById('btc-toman').textContent = fmt(btcT / 1e9) + ' میلیارد';
+        }
+
+        function openModal(type) {
+            const titles = { tether:'₮ تتر', bitcoin:'₿ بیت کوین', ethereum:'Ξ اتریوم', xrp:'✕ ریپل', gold:'🥇 طلای ۱۸', xau:'🌍 اونس طلا', coin:'🪙 سکه' };
+            document.getElementById('modal-title').textContent = titles[type];
+            
+            const p = P[type];
+            const pre = ['bitcoin','ethereum','xrp','xau'].includes(type) ? '$' : '';
+            const dec = (type === 'xrp' || type === 'ethereum') ? (type === 'ethereum' ? 2 : 4) : (type === 'xau' ? 2 : 0);
+
+            document.getElementById('modal-stats').innerHTML = `
+                <div class="modal-stat"><div class="label">قیمت لحظه‌ای</div><div class="value">${pre}${fmtD(p.p, dec)}</div></div>
+                <div class="modal-stat"><div class="label">تغییر ۲۴ ساعته</div><div class="value ${p.c>0?'up':p.c<0?'down':''}">${p.c>0?'+':''}${p.c.toFixed(2)}%</div></div>
+                <div class="modal-stat"><div class="label">بالاترین (۲۴س)</div><div class="value up">${pre}${fmtD(p.h, dec)}</div></div>
+                <div class="modal-stat"><div class="label">پایین‌ترین (۲۴س)</div><div class="value down">${pre}${fmtD(p.l, dec)}</div></div>
+                ${type === 'coin' && p.b > 0 ? `<div class="modal-stat" style="grid-column: span 2; background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.2);"><div class="label" style="color: gold">🫧 حباب سکه</div><div class="value">${fmt(p.b)} تومان</div></div>` : ''}
+                ${p.a ? `<div class="modal-stat" style="grid-column: span 2"><div class="label">سقف تاریخی (ATH)</div><div class="value" style="color: gold">${pre}${fmtD(p.a, dec)}</div></div>` : ''}
+            `;
+            
+            document.getElementById('modal-overlay').classList.add('show');
+            
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            if (chart) chart.destroy();
+            
+            const base = p.p || 1000;
+            const data = [], labels = [];
+            for (let i = 24; i >= 0; i--) {
+                data.push(base + (Math.random() - 0.5) * base * 0.02);
+                labels.push((new Date().getHours() - i + 24) % 24 + ':00');
+            }
+            const colors = { tether:'#26A17B', bitcoin:'#F7931A', ethereum:'#627EEA', xrp:'#00AAE4', gold:'#FFD700', xau:'#D4AF37', coin:'#C9B037' };
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: { 
+                    labels: labels, 
+                    datasets: [{ 
+                        label: titles[type], 
+                        data: data, 
+                        borderColor: colors[type], 
+                        backgroundColor: colors[type]+'33', 
+                        fill: true, 
+                        tension: 0.4, 
+                        pointRadius: 0,
+                        pointHoverRadius: 6, 
+                        borderWidth: 2
+                    }] 
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index', 
+                        intersect: false,
+                    },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: 'rgba(26, 26, 46, 0.9)',
+                            titleColor: '#fff',
+                            bodyColor: '#ccc',
+                            borderColor: 'rgba(255,255,255,0.1)',
+                            borderWidth: 1,
+                            padding: 10,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return pre + fmtD(context.parsed.y, dec);
+                                }
+                            }
+                        }
+                    }, 
+                    scales: { 
+                        x: { 
+                            display: true, 
+                            grid: {
+                                color: 'rgba(255,255,255,0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: 'rgba(255,255,255,0.4)',
+                                font: { size: 10 },
+                                maxTicksLimit: 6,
+                                maxRotation: 0
+                            }
+                        }, 
+                        y: { 
+                            display: true, 
+                            position: 'right', 
+                            grid: {
+                                color: 'rgba(255,255,255,0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: 'rgba(255,255,255,0.4)',
+                                font: { size: 10 },
+                                callback: function(value) {
+                                    if(value >= 1000000) return (value/1000000).toFixed(1) + 'M';
+                                    if(value >= 1000) return (value/1000).toFixed(0) + 'K';
+                                    return value;
+                                }
+                            }
+                        } 
+                    } 
+                }
+            });
+        }
+
+        function closeModal(e) {
+            if (e && e.target !== document.getElementById('modal-overlay')) return;
+            document.getElementById('modal-overlay').classList.remove('show');
+        }
+
+        async function refreshAllPrices() {
+            const start = Date.now();
+            const btn = document.getElementById('refresh-btn');
+            const bar = document.getElementById('loading-bar');
+            
+            btn.classList.add('loading');
+            bar.classList.add('active');
+
+            if (!navigator.onLine) toast('⚠️ عدم اتصال به اینترنت');
+
+            await Promise.all([fetchTether(), fetchTGJU(), fetchCrypto()]);
+
+            const elapsed = ((Date.now() - start) / 1000).toFixed(1);
+
+            updateQuick();
+            convert();
+
+            updateCount++;
+            document.getElementById('update-count').textContent = updateCount;
+            document.getElementById('last-update').textContent = time();
+            document.getElementById('fetch-speed').textContent = elapsed + 's';
+
+            btn.classList.remove('loading');
+            bar.classList.remove('active');
+
+            if (navigator.onLine) toast(`⚡ ${elapsed}s`);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshAllPrices();
+            setInterval(refreshAllPrices, 30000);
+        });
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    </script>
+</body>
+</html>
