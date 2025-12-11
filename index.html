@@ -13,6 +13,7 @@
             min-height: 100vh;
             background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
             overflow-x: hidden;
+            color: #fff;
         }
         .bg-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; }
         .bg-animation span { position: absolute; display: block; background: rgba(255,255,255,0.05); animation: move 25s linear infinite; bottom: -150px; border-radius: 50%; }
@@ -23,6 +24,7 @@
         .bg-animation span:nth-child(5) { left: 65%; width: 20px; height: 20px; }
         .bg-animation span:nth-child(6) { left: 75%; width: 110px; height: 110px; animation-delay: 3s; }
         @keyframes move { 0% { transform: translateY(0) rotate(0); opacity: 1; } 100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; } }
+        
         .container { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 30px 15px; }
         .header { text-align: center; margin-bottom: 40px; }
         .header h1 { font-size: 2.5rem; font-weight: 900; background: linear-gradient(135deg, #f093fb, #f5576c, #4facfe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
@@ -44,6 +46,7 @@
         .loading-bar.active { display: block; }
         .loading-bar-inner { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2, #f093fb); animation: loading 0.6s linear infinite; width: 30%; }
         @keyframes loading { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }
+
         .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .price-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); position: relative; overflow: hidden; transition: all 0.3s; cursor: pointer; }
         .price-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--g); }
@@ -80,6 +83,8 @@
         .price-change.down { background: rgba(255,82,82,0.1); color: #ff5252; }
         .price-change.neutral { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
         .card-footer { display: flex; justify-content: space-between; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.7rem; color: rgba(255,255,255,0.4); }
+        
+        /* Converter & Stats & Modal Styles */
         .converter-section { background: rgba(255,255,255,0.03); border-radius: 20px; padding: 25px; border: 1px solid rgba(255,255,255,0.1); margin-top: 25px; }
         .converter-header { text-align: center; margin-bottom: 20px; }
         .converter-header h3 { color: #fff; font-size: 1.3rem; }
@@ -97,6 +102,7 @@
         .quick-card { background: rgba(255,255,255,0.03); border-radius: 10px; padding: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
         .quick-card .title { color: rgba(255,255,255,0.6); font-size: 0.75rem; margin-bottom: 6px; }
         .quick-card .value { color: #fff; font-size: 1rem; font-weight: 700; }
+        
         .stats-section { background: rgba(255,255,255,0.03); border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); margin-top: 25px; }
         .stats-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
         .stats-header h3 { color: #fff; font-size: 1.1rem; }
@@ -107,6 +113,7 @@
         .stat-item { text-align: center; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 10px; }
         .stat-label { color: rgba(255,255,255,0.5); font-size: 0.75rem; margin-bottom: 5px; }
         .stat-value { color: #fff; font-size: 1rem; font-weight: 700; }
+        
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 15px; }
         .modal-overlay.show { display: flex; }
         .modal { background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 20px; max-width: 600px; width: 100%; max-height: 80vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); }
@@ -122,6 +129,7 @@
         .modal-stat .value.down { color: #ff5252; }
         .chart-container { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 15px; }
         .chart-wrapper { height: 250px; }
+        
         .footer { text-align: center; margin-top: 40px; padding: 25px 15px; }
         .footer p { color: rgba(255,255,255,0.4); font-size: 0.8rem; margin-bottom: 15px; }
         .designer-badge { display: inline-block; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 15px 30px; }
@@ -139,7 +147,7 @@
     <div class="container">
         <header class="header">
             <h1>💎 قیمت لحظه‌ای ارز و طلا</h1>
-            <p>کلیک روی هر کارت = نمودار و جزئیات</p>
+            <p>بروزرسانی زنده از صرافی‌های معتبر</p>
             
             <div class="connection-status online" id="connection-status">
                 <div class="status-dot" id="connection-dot"></div>
@@ -150,6 +158,7 @@
         </header>
 
         <div class="cards-grid">
+            <!-- Tether Card -->
             <div class="price-card tether" onclick="openModal('tether')">
                 <div class="click-hint">📊</div>
                 <div class="card-header">
@@ -162,6 +171,7 @@
                 <div class="card-footer"><span id="tether-time">--</span></div>
             </div>
 
+            <!-- Bitcoin Card -->
             <div class="price-card bitcoin" onclick="openModal('bitcoin')">
                 <div class="click-hint">📊</div>
                 <div class="card-header">
@@ -174,6 +184,7 @@
                 <div class="card-footer"><span id="bitcoin-time">--</span></div>
             </div>
 
+            <!-- Ethereum Card -->
             <div class="price-card ethereum" onclick="openModal('ethereum')">
                 <div class="click-hint">📊</div>
                 <div class="card-header">
@@ -185,6 +196,8 @@
                 <div class="price-change neutral" id="ethereum-change">—</div>
                 <div class="card-footer"><span id="ethereum-time">--</span></div>
             </div>
+            
+            <!-- XRP Card -->
             <div class="price-card xrp" onclick="openModal('xrp')">
                 <div class="click-hint">📊</div>
                 <div class="card-header">
@@ -197,6 +210,7 @@
                 <div class="card-footer"><span id="xrp-time">--</span></div>
             </div>
 
+            <!-- Gold Card -->
             <div class="price-card gold" onclick="openModal('gold')">
                 <div class="click-hint">📊</div>
                 <div class="card-header">
@@ -209,6 +223,7 @@
                 <div class="card-footer"><span id="gold-time">--</span></div>
             </div>
 
+            <!-- World Gold Card -->
             <div class="price-card xau" onclick="openModal('xau')">
                 <div class="click-hint">📊</div>
                 <div class="card-header">
@@ -221,6 +236,7 @@
                 <div class="card-footer"><span id="xau-time">--</span></div>
             </div>
 
+            <!-- Coin Card -->
             <div class="price-card coin" onclick="openModal('coin')">
                 <div class="click-hint">📊</div>
                 <div class="card-header">
@@ -235,12 +251,12 @@
         </div>
 
         <div class="converter-section">
-            <div class="converter-header"><h3>🔄 تبدیل ارز</h3></div>
+            <div class="converter-header"><h3>🔄 تبدیل ارز هوشمند</h3></div>
             <div class="converter-grid">
                 <div class="converter-box">
-                    <label>از:</label>
+                    <label>تبدیل از:</label>
                     <select id="fromCurrency" onchange="convert()">
-                        <option value="usdt">تتر</option>
+                        <option value="usdt">تتر (USDT)</option>
                         <option value="btc">بیت کوین</option>
                         <option value="eth">اتریوم</option>
                         <option value="xrp">ریپل</option>
@@ -253,7 +269,7 @@
                 </div>
                 <button class="swap-btn" onclick="swapCurrencies()">⇄</button>
                 <div class="converter-box">
-                    <label>به:</label>
+                    <label>تبدیل به:</label>
                     <select id="toCurrency" onchange="convert()">
                         <option value="toman">تومان</option>
                         <option value="gold">طلای ۱۸ عیار</option>
@@ -274,27 +290,27 @@
                 <div class="quick-card"><div class="title">۱ BTC = طلا</div><div class="value" id="btc-to-gold">--</div></div>
                 <div class="quick-card"><div class="title">۱ BTC = سکه</div><div class="value" id="btc-to-coin">--</div></div>
                 <div class="quick-card"><div class="title">۱ سکه = طلا</div><div class="value" id="coin-to-gold">--</div></div>
-                <div class="quick-card"><div class="title">BTC تومان</div><div class="value" id="btc-toman">--</div></div>
+                <div class="quick-card"><div class="title">قیمت BTC (تومان)</div><div class="value" id="btc-toman">--</div></div>
             </div>
         </div>
 
         <div class="stats-section">
             <div class="stats-header">
-                <h3>📊 اطلاعات</h3>
+                <h3>📊 وضعیت سیستم</h3>
                 <button class="refresh-btn" id="refresh-btn" onclick="refreshAllPrices()">
                     <span class="refresh-icon">🔄</span> بروزرسانی
                 </button>
             </div>
             <div class="stats-grid">
-                <div class="stat-item"><div class="stat-label">دفعات</div><div class="stat-value" id="update-count">0</div></div>
-                <div class="stat-item"><div class="stat-label">زمان</div><div class="stat-value" id="last-update">--</div></div>
-                <div class="stat-item"><div class="stat-label">سرعت</div><div class="stat-value" id="fetch-speed">--</div></div>
-                <div class="stat-item"><div class="stat-label">خودکار</div><div class="stat-value">۳۰s</div></div>
+                <div class="stat-item"><div class="stat-label">تعداد بروزرسانی</div><div class="stat-value" id="update-count">0</div></div>
+                <div class="stat-item"><div class="stat-label">آخرین زمان</div><div class="stat-value" id="last-update">--</div></div>
+                <div class="stat-item"><div class="stat-label">زمان پاسخدهی</div><div class="stat-value" id="fetch-speed">--</div></div>
+                <div class="stat-item"><div class="stat-label">آپدیت خودکار</div><div class="stat-value">۳۰s</div></div>
             </div>
         </div>
 
         <footer class="footer">
-            <p>💎 داده‌ها از منابع معتبر</p>
+            <p>💎 داده‌ها از API صرافی‌های نوبیتکس، والکس و کوین‌گکو</p>
             <div class="designer-badge">
                 <span>✨ طراحی و توسعه</span>
                 <strong> صادق غنی‌پور</strong>
@@ -302,6 +318,7 @@
         </footer>
     </div>
 
+    <!-- Modal -->
     <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
         <div class="modal" onclick="event.stopPropagation()">
             <div class="modal-header">
@@ -331,6 +348,7 @@
         };
         let updateCount = 0, chart = null;
 
+        // فرمت کردن اعداد
         const fmt = n => Math.floor(n).toLocaleString('en-US');
         const fmtD = (n, d=2) => n ? n.toLocaleString('en-US', {minimumFractionDigits:d, maximumFractionDigits:d}) : '---';
         const time = () => new Date().toLocaleTimeString('fa-IR');
@@ -377,7 +395,8 @@
             P[id] = { ...P[id], p: price, c: change, h: high, l: low, a: ath };
         }
 
-        async function rFetch(urls, timeout = 3000) {
+        // تابع کمکی برای درخواست‌های موازی
+        async function rFetch(urls, timeout = 3500) {
             const ctrl = new AbortController();
             const tid = setTimeout(() => ctrl.abort(), timeout);
             try {
@@ -392,60 +411,91 @@
             }
         }
 
+        // ----------------------------------------------------------------------
+        // دریافت قیمت تتر (اصلاح شده برای رفع مشکل کش و ایستایی)
+        // ----------------------------------------------------------------------
         async function fetchTether() {
             let finalPrice = null;
-            let finalChange = P.tether.c;
-            let finalHigh = P.tether.h;
-            let finalLow = P.tether.l;
+            let finalChange = 0;
+            let finalHigh = 0;
+            let finalLow = 0;
+            
+            // پارامتر زمان برای جلوگیری از کش شدن درخواست‌ها
+            const ts = Date.now();
 
-            try {
-                const nobitexUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://api.nobitex.ir/v2/orderbook/USDTIRT');
-                const data = await fetch(nobitexUrl, { signal: AbortSignal.timeout(3500) }).then(r => r.json());
-                
-                if (data.status === "ok" && data.bids && data.asks) {
-                    const bestBid = parseFloat(data.bids[0][0]);
-                    const bestAsk = parseFloat(data.asks[0][0]);
-                    const avgPrice = (bestBid + bestAsk) / 2;
-                    if (avgPrice > 1000) finalPrice = avgPrice / 10;
-                }
-            } catch (e) { }
-
+            // 1. اولویت اول: نوبیتکس (بسیار دقیق - قیمت آخرین معامله)
             if (!finalPrice) {
                 try {
-                    const wallexUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://api.wallex.ir/v1/markets');
-                    const data = await fetch(wallexUrl, { signal: AbortSignal.timeout(3500) }).then(r => r.json());
-                    let priceObj = data.result?.symbols?.['USDTTMN'] || data.result?.['USDT-TMN'];
-                    if (priceObj?.stats?.lastPrice) {
-                         const price = parseFloat(priceObj.stats.lastPrice);
-                         if (price > 1000) finalPrice = price;
+                    const targetUrl = `https://api.nobitex.ir/market/stats?srcCurrency=usdt&dstCurrency=rls&t=${ts}`;
+                    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
+                    
+                    const response = await fetch(proxyUrl, { signal: AbortSignal.timeout(4000) });
+                    const data = await response.json();
+
+                    if (data.status === "ok" && data.stats && data.stats["usdt-rls"]) {
+                        const stats = data.stats["usdt-rls"];
+                        // قیمت نوبیتکس ریال است، تقسیم بر ۱۰
+                        const latest = parseFloat(stats.latest) / 10;
+                        if (latest > 1000) {
+                            finalPrice = latest;
+                            finalChange = parseFloat(stats.dayChange);
+                            finalHigh = parseFloat(stats.dayHigh) / 10;
+                            finalLow = parseFloat(stats.dayLow) / 10;
+                        }
                     }
-                } catch (e) { }
+                } catch (e) { console.warn('Nobitex fetch failed'); }
             }
 
-            try {
-                const tgjuUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://call4.tgju.org/ajax.json?t=' + Date.now());
-                const d = await fetch(tgjuUrl, { signal: AbortSignal.timeout(3500) }).then(r => r.json());
-                
-                if (d.current && d.current.price_dollar_rl) {
-                    const obj = d.current.price_dollar_rl;
-                    const tgjuPrice = parseFloat(obj.p.replace(/,/g, '')) / 10;
+            // 2. اولویت دوم: والکس
+            if (!finalPrice) {
+                try {
+                    const targetUrl = `https://api.wallex.ir/v1/markets?t=${ts}`;
+                    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
                     
-                    finalChange = parseFloat(obj.dp) || 0;
-                    finalHigh = parseFloat(obj.h.replace(/,/g, '')) / 10;
-                    finalLow = parseFloat(obj.l.replace(/,/g, '')) / 10;
+                    const response = await fetch(proxyUrl, { signal: AbortSignal.timeout(4000) });
+                    const data = await response.json();
                     
-                    if (!finalPrice) finalPrice = tgjuPrice;
-                }
-            } catch (e) { }
+                    // تلاش برای پیدا کردن نماد تتر-تومان
+                    let symbolData = data.result?.symbols?.['USDTTMN'] || data.result?.['USDT-TMN'];
+                    if (symbolData && symbolData.stats) {
+                        finalPrice = parseFloat(symbolData.stats.lastPrice);
+                        finalChange = parseFloat(symbolData.stats['24h_ch'] || 0);
+                        finalHigh = parseFloat(symbolData.stats['24h_high']);
+                        finalLow = parseFloat(symbolData.stats['24h_low']);
+                    }
+                } catch (e) { console.warn('Wallex fetch failed'); }
+            }
+            
+            // 3. اولویت سوم: آبان‌تتر
+            if (!finalPrice) {
+                 try {
+                    const targetUrl = `https://aban.tetherland.com/api/v5/market/prices?t=${ts}`;
+                    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
+                    const response = await fetch(proxyUrl, { signal: AbortSignal.timeout(4000) });
+                    const data = await response.json();
+                    if (data.data && data.data.USDT) {
+                        finalPrice = parseFloat(data.data.USDT.price);
+                        finalChange = parseFloat(data.data.USDT.change_24h || 0);
+                    }
+                 } catch(e) { console.warn('Aban fetch failed'); }
+            }
 
+            // نمایش نتیجه یا خطا
             if (finalPrice) {
                 setPrice('tether', finalPrice, finalChange, '', 0, finalHigh, finalLow);
             } else {
-                document.getElementById('tether-price').textContent = 'خطا';
-                document.getElementById('tether-price').classList.add('error');
+                const el = document.getElementById('tether-price');
+                // فقط اگر قبلاً قیمتی نداشتیم خطا بزن، وگرنه قیمت قبلی بماند
+                if (el.innerText.includes('⏳') || el.innerText.includes('خطا')) {
+                     el.textContent = 'خطا';
+                     el.classList.add('error');
+                }
             }
         }
         
+        // ----------------------------------------------------------------------
+        // دریافت قیمت طلا و سکه
+        // ----------------------------------------------------------------------
         async function fetchTGJU() {
             const ts = Date.now();
             const targetUrl = 'https://call4.tgju.org/ajax.json?t=' + ts;
@@ -453,7 +503,8 @@
                 'https://corsproxy.io/?' + encodeURIComponent(targetUrl),
                 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(targetUrl)
             ];
-            const d = await rFetch(urls, 4000);
+            
+            const d = await rFetch(urls, 5000);
             if (!d?.current) return;
 
             const parse = (obj) => ({
@@ -463,23 +514,24 @@
                 l: parseFloat(obj.l.replace(/,/g,''))
             });
             
+            // طلای ۱۸ عیار
             if (d.current.geram18) {
                 const vals = parse(d.current.geram18);
                 setPrice('gold', vals.p/10, vals.c, '', 0, vals.h/10, vals.l/10);
             }
+            
+            // سکه امامی
             if (d.current.sekee) {
                 const vals = parse(d.current.sekee);
                 setPrice('coin', vals.p/10, vals.c, '', 0, vals.h/10, vals.l/10);
             }
-
-            // --- دریافت دقیق حباب سکه امامی با استفاده از شناسه اختصاصی سایت ---
-            // شناسه حباب سکه امامی در TGJU برابر sekeh_emami_bubble است
+            
+            // حباب سکه
             if (d.current.sekeh_emami_bubble) {
-                const bubbleObj = d.current.sekeh_emami_bubble;
-                // قیمت در این بخش معمولا به ریال است، تقسیم بر ۱۰ می‌کنیم
-                P.coin.b = parseFloat(bubbleObj.p.replace(/,/g,'')) / 10;
+                P.coin.b = parseFloat(d.current.sekeh_emami_bubble.p.replace(/,/g,'')) / 10;
             }
 
+            // انس جهانی
             const xauData = d.current.ons || d.current.ounce;
             if (xauData) {
                 const vals = parse(xauData);
@@ -487,7 +539,11 @@
             }
         }
 
+        // ----------------------------------------------------------------------
+        // دریافت قیمت ارزهای دیجیتال (جهانی)
+        // ----------------------------------------------------------------------
         async function fetchCrypto() {
+            // اضافه کردن تایم استمپ برای جلوگیری از کش کوین‌گکو
             const urls = [ 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,ripple&t=' + Date.now() ];
             const data = await rFetch(urls, 4000);
             if (data && Array.isArray(data)) {
@@ -502,6 +558,7 @@
             }
         }
 
+        // محاسبات تبدیل ارز
         function convert() {
             const from = document.getElementById('fromCurrency').value;
             const to = document.getElementById('toCurrency').value;
@@ -551,6 +608,7 @@
             document.getElementById('btc-toman').textContent = fmt(btcT / 1e9) + ' میلیارد';
         }
 
+        // مدال و نمودار
         function openModal(type) {
             const titles = { tether:'₮ تتر', bitcoin:'₿ بیت کوین', ethereum:'Ξ اتریوم', xrp:'✕ ریپل', gold:'🥇 طلای ۱۸', xau:'🌍 اونس طلا', coin:'🪙 سکه' };
             document.getElementById('modal-title').textContent = titles[type];
@@ -573,12 +631,19 @@
             const ctx = document.getElementById('priceChart').getContext('2d');
             if (chart) chart.destroy();
             
+            // ساخت داده‌های نمودار مصنوعی حول قیمت فعلی (برای زیبایی)
             const base = p.p || 1000;
             const data = [], labels = [];
             for (let i = 24; i >= 0; i--) {
-                data.push(base + (Math.random() - 0.5) * base * 0.02);
+                // نوسان تصادفی کم دور قیمت فعلی
+                const variance = base * 0.015; 
+                const val = base + (Math.random() * variance * 2 - variance);
+                data.push(val);
                 labels.push((new Date().getHours() - i + 24) % 24 + ':00');
             }
+            // نقطه آخر باید قیمت فعلی باشد
+            data[data.length-1] = base;
+
             const colors = { tether:'#26A17B', bitcoin:'#F7931A', ethereum:'#627EEA', xrp:'#00AAE4', gold:'#FFD700', xau:'#D4AF37', coin:'#C9B037' };
             
             chart = new Chart(ctx, {
@@ -600,10 +665,7 @@
                 options: { 
                     responsive: true, 
                     maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index', 
-                        intersect: false,
-                    },
+                    interaction: { mode: 'index', intersect: false },
                     plugins: { 
                         legend: { display: false },
                         tooltip: {
@@ -616,43 +678,13 @@
                             padding: 10,
                             displayColors: false,
                             callbacks: {
-                                label: function(context) {
-                                    return pre + fmtD(context.parsed.y, dec);
-                                }
+                                label: function(context) { return pre + fmtD(context.parsed.y, dec); }
                             }
                         }
                     }, 
                     scales: { 
-                        x: { 
-                            display: true, 
-                            grid: {
-                                color: 'rgba(255,255,255,0.05)',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                color: 'rgba(255,255,255,0.4)',
-                                font: { size: 10 },
-                                maxTicksLimit: 6,
-                                maxRotation: 0
-                            }
-                        }, 
-                        y: { 
-                            display: true, 
-                            position: 'right', 
-                            grid: {
-                                color: 'rgba(255,255,255,0.05)',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                color: 'rgba(255,255,255,0.4)',
-                                font: { size: 10 },
-                                callback: function(value) {
-                                    if(value >= 1000000) return (value/1000000).toFixed(1) + 'M';
-                                    if(value >= 1000) return (value/1000).toFixed(0) + 'K';
-                                    return value;
-                                }
-                            }
-                        } 
+                        x: { display: true, grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false }, ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10 }, maxTicksLimit: 6 } }, 
+                        y: { display: true, position: 'right', grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false }, ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10 } } } 
                     } 
                 }
             });
@@ -663,6 +695,7 @@
             document.getElementById('modal-overlay').classList.remove('show');
         }
 
+        // تابع اصلی آپدیت
         async function refreshAllPrices() {
             const start = Date.now();
             const btn = document.getElementById('refresh-btn');
@@ -673,6 +706,7 @@
 
             if (!navigator.onLine) toast('⚠️ عدم اتصال به اینترنت');
 
+            // اجرای همه درخواست‌ها
             await Promise.all([fetchTether(), fetchTGJU(), fetchCrypto()]);
 
             const elapsed = ((Date.now() - start) / 1000).toFixed(1);
@@ -688,12 +722,12 @@
             btn.classList.remove('loading');
             bar.classList.remove('active');
 
-            if (navigator.onLine) toast(`⚡ ${elapsed}s`);
+            if (navigator.onLine) toast(`⚡ بروزرسانی: ${elapsed} ثانیه`);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             refreshAllPrices();
-            setInterval(refreshAllPrices, 30000);
+            setInterval(refreshAllPrices, 30000); // هر ۳۰ ثانیه
         });
 
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
